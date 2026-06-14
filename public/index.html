@@ -21,6 +21,8 @@
     --bear-vac-text:    #ffffff;
     --tigey-city:       #2d7e6e;
     --tigey-city-text:  #ffffff;
+    --tigey-wfh:        #6aada0;
+    --tigey-wfh-text:   #ffffff;
     --tigey-home:       #c5e4da;
     --tigey-home-text:  #174036;
     --visitor:          #b98520;
@@ -290,11 +292,12 @@
     .ev { font-size: 10px; padding: 2px 5px; }
   }
 
-  .ev-bear-work { background: var(--bear-work);  color: #fff; }
-  .ev-bear-vac  { background: var(--bear-vac);   color: #fff; }
+  .ev-bear-work  { background: var(--bear-work);  color: #fff; }
+  .ev-bear-vac   { background: var(--bear-vac);   color: #fff; }
   .ev-tigey-city { background: var(--tigey-city); color: #fff; }
+  .ev-tigey-wfh  { background: var(--tigey-wfh);  color: #fff; }
   .ev-tigey-home { background: var(--tigey-home); color: var(--tigey-home-text); border: 1px solid var(--free-edge); }
-  .ev-visitor   { background: #f5ecd4; color: #7a5a10; border: 1px solid #e0c870; }
+  .ev-visitor    { background: #f5ecd4; color: #7a5a10; border: 1px solid #e0c870; }
 
   /* Multi-select */
   .day.selected { outline: 2.5px solid var(--ink); outline-offset: -1px; }
@@ -354,6 +357,7 @@
   .swatch.bear-work  { background: var(--bear-work); border-color: var(--bear-work); }
   .swatch.bear-vac   { background: var(--bear-vac);  border-color: var(--bear-vac); }
   .swatch.tigey-city { background: var(--tigey-city); border-color: var(--tigey-city); }
+  .swatch.tigey-wfh  { background: var(--tigey-wfh);  border-color: var(--tigey-wfh); }
   .swatch.tigey-home { background: var(--tigey-home); border-color: var(--free-edge); }
   .swatch.free       { background: var(--free-bg); border-color: var(--free-edge); }
   .swatch.visitor    { background: #f5ecd4; border-color: #e0c870; }
@@ -557,6 +561,7 @@
   .pill.active.bear-work     { background: var(--bear-work);  color: var(--bear-work-text);  border-color: var(--bear-work); }
   .pill.active.bear-vacation { background: var(--bear-vac);   color: var(--bear-vac-text);   border-color: var(--bear-vac); }
   .pill.active.tigey-city    { background: var(--tigey-city); color: var(--tigey-city-text); border-color: var(--tigey-city); }
+  .pill.active.tigey-wfh     { background: var(--tigey-wfh);  color: var(--tigey-wfh-text);  border-color: var(--tigey-wfh); }
   .pill.active.tigey-home    { background: var(--tigey-home); color: var(--tigey-home-text); border-color: var(--free-edge); }
 
   .field-group input[type="text"],
@@ -658,6 +663,7 @@
           <div class="legend-item"><span class="swatch bear-work"></span>Bear working</div>
           <div class="legend-item"><span class="swatch bear-vac"></span>Bear on vacation</div>
           <div class="legend-item"><span class="swatch tigey-city"></span>Tigey in the city</div>
+          <div class="legend-item"><span class="swatch tigey-wfh"></span>Tigey WFH</div>
           <div class="legend-item"><span class="swatch tigey-home"></span>Tigey at home</div>
           <div class="legend-item"><span class="swatch free"></span>Free weekend</div>
           <div class="legend-item"><span class="swatch visitor"></span>Visitor noted</div>
@@ -687,6 +693,7 @@
           <div class="legend-item"><span class="swatch bear-work"></span>Bear working</div>
           <div class="legend-item"><span class="swatch bear-vac"></span>Bear on vacation</div>
           <div class="legend-item"><span class="swatch tigey-city"></span>Tigey in the city</div>
+          <div class="legend-item"><span class="swatch tigey-wfh"></span>Tigey WFH</div>
           <div class="legend-item"><span class="swatch tigey-home"></span>Tigey at home</div>
           <div class="legend-item"><span class="swatch free"></span>Free weekend</div>
           <div class="legend-item"><span class="swatch visitor"></span>Visitor noted</div>
@@ -725,6 +732,7 @@
       <span class="multibar-label">Tigey</span>
       <div class="multibar-pills">
         <button class="pill tigey-city" data-mfield="tigey" data-mvalue="city">City</button>
+        <button class="pill tigey-wfh"  data-mfield="tigey" data-mvalue="wfh">WFH</button>
         <button class="pill tigey-home" data-mfield="tigey" data-mvalue="home">Home</button>
         <button class="pill"            data-mfield="tigey" data-mvalue="">Clear</button>
       </div>
@@ -756,6 +764,7 @@
       <label class="person">Tigey (Jessica)</label>
       <div class="pill-row">
         <button class="pill tigey-city" data-field="tigey" data-value="city">In the city</button>
+        <button class="pill tigey-wfh"  data-field="tigey" data-value="wfh">WFH</button>
         <button class="pill tigey-home" data-field="tigey" data-value="home">Home</button>
         <button class="pill"            data-field="tigey" data-value="">Clear</button>
       </div>
@@ -889,6 +898,7 @@ function renderGrid() {
     if (entry.bear === 'work')     evs.push(['ev-bear-work',  'Bear working']);
     if (entry.bear === 'vacation') evs.push(['ev-bear-vac',   'Bear vacation']);
     if (entry.tigey === 'city')    evs.push(['ev-tigey-city', entry.tigeyNote || 'Tigey in city']);
+    if (entry.tigey === 'wfh')     evs.push(['ev-tigey-wfh',  entry.tigeyNote || 'Tigey WFH']);
     if (entry.tigey === 'home')    evs.push(['ev-tigey-home', entry.tigeyNote || 'Tigey at home']);
     if (entry.visitor)             evs.push(['ev-visitor',    entry.visitor]);
 
@@ -919,7 +929,7 @@ function renderSummary() {
   const m = currentDate.getMonth();
   const daysInMonth = new Date(y, m+1, 0).getDate();
 
-  let freeWeekends = 0, bearWork = 0, bearVacation = 0, tigeyCity = 0, tigeyHome = 0, visitors = 0;
+  let freeWeekends = 0, bearWork = 0, bearVacation = 0, tigeyCity = 0, tigeyWfh = 0, tigeyHome = 0, visitors = 0;
   const seenWeekends = new Set();
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -929,6 +939,7 @@ function renderSummary() {
     if (entry.bear === 'work')     bearWork++;
     if (entry.bear === 'vacation') bearVacation += (dow === 5 ? 0.5 : 1);
     if (entry.tigey === 'city')    tigeyCity++;
+    if (entry.tigey === 'wfh')     tigeyWfh++;
     if (entry.tigey === 'home')    tigeyHome++;
     if (entry.visitor) visitors++;
     if (dow === 6) {
@@ -948,6 +959,7 @@ function renderSummary() {
     <div class="summary-row"><span class="label">Bear working days</span><span class="value">${bearWork}</span></div>
     <div class="summary-row"><span class="label">Bear vacation days</span><span class="value">${bearVacation}</span></div>
     <div class="summary-row"><span class="label">Tigey days in city</span><span class="value">${tigeyCity}</span></div>
+    <div class="summary-row"><span class="label">Tigey WFH days</span><span class="value">${tigeyWfh}</span></div>
     <div class="summary-row"><span class="label">Tigey days at home</span><span class="value">${tigeyHome}</span></div>
     <div class="summary-row"><span class="label">Visitor days</span><span class="value">${visitors}</span></div>`;
   summaryBox.innerHTML        = html;
