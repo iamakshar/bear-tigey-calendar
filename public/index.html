@@ -214,21 +214,23 @@
   }
 
   .day {
-    aspect-ratio: 0.82;
+    min-height: 72px;
     border: 1.5px solid var(--line);
     border-radius: var(--r-md);
-    padding: 6px 6px 5px;
+    padding: 5px 5px 4px;
     background: var(--surface);
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 3px;
     overflow: hidden;
     position: relative;
     transition: transform 0.08s ease, box-shadow 0.08s ease;
     -webkit-user-select: none;
     user-select: none;
   }
+
+  @media (min-width: 780px) { .day { min-height: 88px; } }
 
   .day:active { transform: scale(0.94); }
 
@@ -239,102 +241,73 @@
   .day.empty { border: none; background: transparent; cursor: default; pointer-events: none; }
 
   .day .num {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   .day.weekend .num { color: var(--bear-work); }
-  .day.today { border-color: var(--ink); border-width: 2px; }
-  .day.today .num::after {
-    content: '';
-    display: block;
-    width: 4px;
-    height: 4px;
+
+  /* Today: circle around number */
+  .day.today .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--ink);
-    margin-top: 2px;
+    color: #fff;
+    font-size: 11px;
   }
+  .day.today.weekend .num { color: #fff; }
 
-  /* Bear statuses */
-  .day.has-bear-work  { background: var(--bear-work);  border-color: var(--bear-work); }
-  .day.has-bear-work .num { color: var(--bear-work-text); }
-  .day.has-bear-work.weekend .num { color: var(--bear-work-text); }
-  .day.has-bear-work.today { border-color: rgba(255,255,255,0.5); }
-  .day.has-bear-work.today .num::after { background: rgba(255,255,255,0.7); }
-
-  .day.has-bear-vac   { background: var(--bear-vac);   border-color: var(--bear-vac); }
-  .day.has-bear-vac .num { color: var(--bear-vac-text); }
-  .day.has-bear-vac.weekend .num { color: var(--bear-vac-text); }
-  .day.has-bear-vac.today { border-color: rgba(255,255,255,0.5); }
-  .day.has-bear-vac.today .num::after { background: rgba(255,255,255,0.7); }
-
-  /* Tigey — full fill when Bear has no status */
-  .day.tigey-city:not(.has-bear-work):not(.has-bear-vac) {
-    background: var(--tigey-city); border-color: var(--tigey-city);
-  }
-  .day.tigey-city:not(.has-bear-work):not(.has-bear-vac) .num { color: var(--tigey-city-text); }
-  .day.tigey-city:not(.has-bear-work):not(.has-bear-vac).weekend .num { color: var(--tigey-city-text); }
-  .day.tigey-city:not(.has-bear-work):not(.has-bear-vac).today { border-color: rgba(255,255,255,0.5); }
-
-  .day.tigey-home:not(.has-bear-work):not(.has-bear-vac) {
-    background: var(--tigey-home); border-color: var(--free-edge);
-  }
-  .day.tigey-home:not(.has-bear-work):not(.has-bear-vac) .num { color: var(--tigey-home-text); }
-
+  /* Subtle tint for free weekends */
   .day.free-day { background: var(--free-bg); border-color: var(--free-edge); }
 
-  /* Tigey dot (when Bear also has a status) */
-  .tigey-dot {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(255,255,255,0.8);
+  /* ── Event bars ── */
+  .events {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
   }
-  .tigey-dot.city { background: var(--tigey-city); }
-  .tigey-dot.home { background: var(--tigey-home); border-color: var(--tigey-city); }
 
-  /* Visitor mark */
-  .visitor-mark {
-    position: absolute;
-    bottom: 5px;
-    left: 5px;
-    width: 6px;
-    height: 6px;
-    border-radius: 2px;
-    background: var(--visitor);
-    transform: rotate(45deg);
+  .ev {
+    font-size: 8.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    padding: 1px 4px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
+
+  @media (min-width: 780px) {
+    .ev { font-size: 10px; padding: 2px 5px; }
+  }
+
+  .ev-bear-work { background: var(--bear-work);  color: #fff; }
+  .ev-bear-vac  { background: var(--bear-vac);   color: #fff; }
+  .ev-tigey-city { background: var(--tigey-city); color: #fff; }
+  .ev-tigey-home { background: var(--tigey-home); color: var(--tigey-home-text); border: 1px solid var(--free-edge); }
+  .ev-visitor   { background: #f5ecd4; color: #7a5a10; border: 1px solid #e0c870; }
 
   /* Multi-select */
   .day.selected { outline: 2.5px solid var(--ink); outline-offset: -1px; }
-  .day.selected .check {
+  .day.selected::after {
+    content: '✓';
     position: absolute;
-    bottom: 4px;
+    bottom: 3px;
     right: 4px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 9px;
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1;
   }
-  .day.selected .check::after {
-    content: '';
-    width: 6px;
-    height: 4px;
-    border-left: 1.5px solid #fff;
-    border-bottom: 1.5px solid #fff;
-    transform: rotate(-45deg) translate(0.5px, -0.5px);
-  }
-  .day.has-bear-work.selected .check,
-  .day.has-bear-vac.selected .check { background: rgba(255,255,255,0.25); }
-  .day.has-bear-work.selected .check::after,
-  .day.has-bear-vac.selected .check::after { border-color: #fff; }
 
   /* ── Side column ── */
   /* ── Legend ── */
@@ -378,23 +351,12 @@
     border: 1.5px solid transparent;
     flex-shrink: 0;
   }
-  .swatch.bear-work  { background: var(--bear-work); }
-  .swatch.bear-vac   { background: var(--bear-vac); }
-  .swatch.tigey-city { background: var(--tigey-city); }
+  .swatch.bear-work  { background: var(--bear-work); border-color: var(--bear-work); }
+  .swatch.bear-vac   { background: var(--bear-vac);  border-color: var(--bear-vac); }
+  .swatch.tigey-city { background: var(--tigey-city); border-color: var(--tigey-city); }
   .swatch.tigey-home { background: var(--tigey-home); border-color: var(--free-edge); }
   .swatch.free       { background: var(--free-bg); border-color: var(--free-edge); }
-  .swatch.visitor    { background: var(--surface); border-color: var(--line); position: relative; }
-  .swatch.visitor::after {
-    content: '';
-    position: absolute;
-    bottom: 3px;
-    left: 3px;
-    width: 7px;
-    height: 7px;
-    border-radius: 2px;
-    background: var(--visitor);
-    transform: rotate(45deg);
-  }
+  .swatch.visitor    { background: #f5ecd4; border-color: #e0c870; }
 
   /* ── Summary ── */
   .summary-block {
@@ -917,22 +879,24 @@ function renderGrid() {
     const isFreeDay = isWeekend && !entry.bear && entry.tigey !== 'city';
 
     let cls = 'day';
-    if (isWeekend)            cls += ' weekend';
-    if (key === today)        cls += ' today';
-    if (entry.bear === 'work')     cls += ' has-bear-work';
-    if (entry.bear === 'vacation') cls += ' has-bear-vac';
-    if (entry.tigey === 'city')    cls += ' tigey-city';
-    if (entry.tigey === 'home')    cls += ' tigey-home';
-    if (isFreeDay)            cls += ' free-day';
+    if (isWeekend)             cls += ' weekend';
+    if (key === today)         cls += ' today';
+    if (isFreeDay)             cls += ' free-day';
     if (selectedDays.has(key)) cls += ' selected';
 
-    let extras = '';
-    if (entry.bear && entry.tigey === 'city') extras += '<div class="tigey-dot city"></div>';
-    else if (entry.bear && entry.tigey === 'home') extras += '<div class="tigey-dot home"></div>';
-    if (entry.visitor) extras += '<div class="visitor-mark"></div>';
-    if (selectedDays.has(key)) extras += '<div class="check"></div>';
+    // Build event bars
+    const evs = [];
+    if (entry.bear === 'work')     evs.push(['ev-bear-work',  'Bear working']);
+    if (entry.bear === 'vacation') evs.push(['ev-bear-vac',   'Bear vacation']);
+    if (entry.tigey === 'city')    evs.push(['ev-tigey-city', entry.tigeyNote || 'Tigey in city']);
+    if (entry.tigey === 'home')    evs.push(['ev-tigey-home', entry.tigeyNote || 'Tigey at home']);
+    if (entry.visitor)             evs.push(['ev-visitor',    entry.visitor]);
 
-    html += `<div class="${cls}" data-key="${key}"><div class="num">${d}</div>${extras}</div>`;
+    const evHTML = evs.length
+      ? `<div class="events">${evs.map(([c, l]) => `<div class="ev ${c}">${l}</div>`).join('')}</div>`
+      : '';
+
+    html += `<div class="${cls}" data-key="${key}"><div class="num">${d}</div>${evHTML}</div>`;
   }
 
   grid.innerHTML = html;
