@@ -1,6 +1,11 @@
-const { put, list, download } = require('@vercel/blob');
+const { createClient } = require('@libsql/client');
 
-const FILE_NAME = 'calendar-data.json';
+function getDb() {
+  return createClient({
+    url: process.env.TURSO_DATABASE_URL,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,33 +17,32 @@ module.exports = async (req, res) => {
     return;
   }
 
-  try {
-    if (req.method === 'GET') {
-      const { blobs } = await list({ prefix: FILE_NAME });
-      const existing = blobs.find(b => b.pathname === FILE_NAME);
+  const db = getDb();
 
-      if (!existing) {
+  try {
+    await db.execute(
+      `CREATE TABLE IF NOT EXISTS calendar (id TEXT PRIMARY KEY, data TEXT NOT NULL)`
+    );
+
+    if (req.method === 'GET') {
+      const result = await db.execute(
+        `SELECT data FROM calendar WHERE id = 'main'`
+      );
+      if (result.rows.length === 0) {
         res.status(200).json({});
         return;
       }
-
-      const response = await download(existing.url);
-      const json = await response.json();
-      res.status(200).json(json);
+      res.status(200).json(JSON.parse(result.rows[0].data));
       return;
     }
 
     if (req.method === 'POST') {
       let body = req.body;
-      if (typeof body === 'string') {
-        body = JSON.parse(body);
-      }
+      if (typeof body === 'string') body = JSON.parse(body);
 
-      await put(FILE_NAME, JSON.stringify(body), {
-        access: 'private',
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: 'application/json',
+      await db.execute({
+        sql: `INSERT INTO calendar (id, data) VALUES ('main', ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data`,
+        args: [JSON.stringify(body)],
       });
 
       res.status(200).json({ ok: true });
