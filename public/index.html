@@ -621,7 +621,7 @@ function renderSummary() {
     const dow = new Date(y, m, d).getDay();
 
     if (entry.bear === 'work') bearWork++;
-    if (entry.bear === 'vacation') bearVacation++;
+    if (entry.bear === 'vacation') bearVacation += (dow === 5 ? 0.5 : 1);
     if (entry.tigey === 'city') tigeyCity++;
     if (entry.tigey === 'home') tigeyHome++;
     if (entry.visitor) visitors++;
@@ -666,7 +666,10 @@ function renderVacation() {
     let count = 0;
     for (let d = 1; d <= daysInMonth; d++) {
       const key = dateKey(y, m, d);
-      if (data[key] && data[key].bear === 'vacation') count++;
+      if (data[key] && data[key].bear === 'vacation') {
+        const dow = new Date(y, m, d).getDay();
+        count += (dow === 5 ? 0.5 : 1);
+      }
     }
     total += count;
     rows += `<div class="summary-row"><span class="label">${name}</span><span class="value">${count}</span></div>`;
