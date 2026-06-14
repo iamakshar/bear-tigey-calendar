@@ -81,6 +81,70 @@
     cursor: pointer;
   }
 
+  .btn-select {
+    border: 1px solid var(--ink) !important;
+    background: var(--paper) !important;
+    border-radius: 20px !important;
+    width: auto !important;
+    height: 32px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    padding: 0 12px !important;
+    letter-spacing: 0.3px;
+  }
+  .btn-select.active {
+    background: var(--ink) !important;
+    color: white !important;
+  }
+
+  .day.selected {
+    outline: 2.5px solid var(--ink);
+    outline-offset: -2px;
+  }
+  .day.selected::before {
+    content: '✓';
+    position: absolute;
+    bottom: 4px;
+    right: 5px;
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .day.has-bear-work.selected::before,
+  .day.has-bear-vacation.selected::before { color: rgba(255,255,255,0.85); }
+
+  /* Multi-select action bar */
+  .multibar {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--paper);
+    border-top: 2px solid var(--ink);
+    padding: 12px 14px 28px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 200;
+  }
+  .multibar.open { display: flex; }
+  .multibar-title {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .multibar-rows { display: flex; flex-direction: column; gap: 8px; }
+  .multibar-row { display: flex; gap: 6px; align-items: center; }
+  .multibar-label { font-size: 12px; font-weight: 700; width: 46px; color: var(--muted); }
+  .multibar-pills { display: flex; gap: 6px; flex: 1; }
+  .multibar-pills .pill { padding: 7px 12px; font-size: 12px; }
+  .multibar-actions { display: flex; gap: 8px; margin-top: 2px; }
+  .multibar-actions button { flex: 1; padding: 11px; border-radius: 8px; border: 1px solid var(--ink); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .btn-apply { background: var(--ink); color: white; }
+  .btn-cancel-multi { background: white; color: var(--ink); }
+
   .month-nav .month-label {
     font-size: 19px;
     font-weight: 600;
@@ -414,7 +478,10 @@
 <div class="month-nav">
   <button id="prevMonth">‹</button>
   <div class="month-label" id="monthLabel">June 2026</div>
-  <button id="nextMonth">›</button>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <button class="btn-select" id="btnSelect">Select</button>
+    <button id="nextMonth">›</button>
+  </div>
 </div>
 
 <div class="weekday-row">
@@ -442,6 +509,33 @@
 <div class="summary">
   <h2>Bear's vacation days (Jun–Aug 2026)</h2>
   <div id="vacationBox"></div>
+</div>
+
+<!-- Multi-select action bar -->
+<div class="multibar" id="multibar">
+  <div class="multibar-title" id="multibarTitle">0 days selected</div>
+  <div class="multibar-rows">
+    <div class="multibar-row">
+      <span class="multibar-label">Bear</span>
+      <div class="multibar-pills">
+        <button class="pill bear-work" data-mfield="bear" data-mvalue="work">Working</button>
+        <button class="pill bear-vacation" data-mfield="bear" data-mvalue="vacation">Vacation</button>
+        <button class="pill" data-mfield="bear" data-mvalue="">Clear</button>
+      </div>
+    </div>
+    <div class="multibar-row">
+      <span class="multibar-label">Tigey</span>
+      <div class="multibar-pills">
+        <button class="pill tigey-city" data-mfield="tigey" data-mvalue="city">City</button>
+        <button class="pill tigey-home" data-mfield="tigey" data-mvalue="home">Home</button>
+        <button class="pill" data-mfield="tigey" data-mvalue="">Clear</button>
+      </div>
+    </div>
+  </div>
+  <div class="multibar-actions">
+    <button class="btn-cancel-multi" id="cancelMulti">Cancel</button>
+    <button class="btn-apply" id="applyMulti">Apply</button>
+  </div>
 </div>
 
 <!-- Day editor sheet -->
@@ -489,6 +583,11 @@ let currentDate = new Date(2026, 5, 1); // June 2026
 let selectedDateKey = null;
 let pendingBear = '';
 let pendingTigey = '';
+
+let selectMode = false;
+let selectedDays = new Set();
+let pendingMultiBear = null; // null = no change, '' = clear, 'work'/'vacation' = set
+let pendingMultiTigey = null;
 
 const monthLabel = document.getElementById('monthLabel');
 const grid = document.getElementById('calendarGrid');
@@ -602,7 +701,21 @@ function renderGrid() {
   grid.innerHTML = html;
 
   grid.querySelectorAll('.day:not(.empty)').forEach(el => {
-    el.addEventListener('click', () => openSheet(el.dataset.key));
+    if (selectedDays.has(el.dataset.key)) el.classList.add('selected');
+    el.addEventListener('click', () => {
+      if (selectMode) {
+        if (selectedDays.has(el.dataset.key)) {
+          selectedDays.delete(el.dataset.key);
+          el.classList.remove('selected');
+        } else {
+          selectedDays.add(el.dataset.key);
+          el.classList.add('selected');
+        }
+        updateMultibarTitle();
+      } else {
+        openSheet(el.dataset.key);
+      }
+    });
   });
 }
 
@@ -754,6 +867,91 @@ document.getElementById('prevMonth').addEventListener('click', () => {
 document.getElementById('nextMonth').addEventListener('click', () => {
   currentDate.setMonth(currentDate.getMonth() + 1);
   render();
+});
+
+const multibar = document.getElementById('multibar');
+const multibarTitle = document.getElementById('multibarTitle');
+const btnSelect = document.getElementById('btnSelect');
+
+function updateMultibarTitle() {
+  const n = selectedDays.size;
+  multibarTitle.textContent = `${n} day${n !== 1 ? 's' : ''} selected`;
+}
+
+function enterSelectMode() {
+  selectMode = true;
+  selectedDays.clear();
+  pendingMultiBear = null;
+  pendingMultiTigey = null;
+  btnSelect.classList.add('active');
+  btnSelect.textContent = 'Done';
+  multibar.classList.add('open');
+  updateMultibarTitle();
+  updateMultiPillStates();
+}
+
+function exitSelectMode() {
+  selectMode = false;
+  selectedDays.clear();
+  pendingMultiBear = null;
+  pendingMultiTigey = null;
+  btnSelect.classList.remove('active');
+  btnSelect.textContent = 'Select';
+  multibar.classList.remove('open');
+  render();
+}
+
+function updateMultiPillStates() {
+  document.querySelectorAll('.pill[data-mfield="bear"]').forEach(p => {
+    p.classList.toggle('active', p.dataset.mvalue !== '' && p.dataset.mvalue === pendingMultiBear
+      || (p.dataset.mvalue === '' && pendingMultiBear === ''));
+  });
+  document.querySelectorAll('.pill[data-mfield="tigey"]').forEach(p => {
+    p.classList.toggle('active', p.dataset.mvalue !== '' && p.dataset.mvalue === pendingMultiTigey
+      || (p.dataset.mvalue === '' && pendingMultiTigey === ''));
+  });
+}
+
+btnSelect.addEventListener('click', () => {
+  if (selectMode) exitSelectMode();
+  else enterSelectMode();
+});
+
+document.querySelectorAll('.pill[data-mfield="bear"]').forEach(p => {
+  p.addEventListener('click', () => {
+    pendingMultiBear = p.dataset.mvalue;
+    updateMultiPillStates();
+  });
+});
+
+document.querySelectorAll('.pill[data-mfield="tigey"]').forEach(p => {
+  p.addEventListener('click', () => {
+    pendingMultiTigey = p.dataset.mvalue;
+    updateMultiPillStates();
+  });
+});
+
+document.getElementById('cancelMulti').addEventListener('click', exitSelectMode);
+
+document.getElementById('applyMulti').addEventListener('click', async () => {
+  if (selectedDays.size === 0) { exitSelectMode(); return; }
+
+  selectedDays.forEach(key => {
+    const entry = data[key] ? { ...data[key] } : {};
+    if (pendingMultiBear !== null) {
+      if (pendingMultiBear === '') delete entry.bear;
+      else entry.bear = pendingMultiBear;
+    }
+    if (pendingMultiTigey !== null) {
+      if (pendingMultiTigey === '') delete entry.tigey;
+      else entry.tigey = pendingMultiTigey;
+    }
+    if (Object.keys(entry).length === 0) delete data[key];
+    else data[key] = entry;
+  });
+
+  exitSelectMode();
+  await saveData();
 });
 
 loadData();
