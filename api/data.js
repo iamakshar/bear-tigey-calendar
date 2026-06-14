@@ -1,4 +1,4 @@
-const { put, list } = require('@vercel/blob');
+const { put, list, download } = require('@vercel/blob');
 
 const FILE_NAME = 'calendar-data.json';
 
@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
         return;
       }
 
-      const response = await fetch(existing.url);
+      const response = await download(existing.url);
       const json = await response.json();
       res.status(200).json(json);
       return;
@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
       }
 
       await put(FILE_NAME, JSON.stringify(body), {
-        access: 'public',
+        access: 'private',
         addRandomSuffix: false,
         allowOverwrite: true,
         contentType: 'application/json',
